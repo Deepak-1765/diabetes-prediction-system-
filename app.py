@@ -1,12 +1,11 @@
+import os
 import gradio as gr
 import joblib
-import spaces
 
 # Load the trained model
 diabetes_model = joblib.load("diabetes_prediction_model.pkl")
 
 
-@spaces.GPU
 def predict_diabetes(
     pregnancies,
     glucose,
@@ -52,8 +51,10 @@ interface = gr.Interface(
 Enter the patient's medical information below.
 The machine learning model will predict whether the patient is likely to have diabetes.
 """,
-    theme="soft"
 )
 
 if __name__ == "__main__":
-    interface.launch()
+    interface.launch(
+        server_name="0.0.0.0",
+        server_port=int(os.environ.get("PORT", 7860))
+    )
