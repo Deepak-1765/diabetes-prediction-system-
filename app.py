@@ -2,7 +2,7 @@ import os
 import gradio as gr
 import joblib
 
-# Load the trained model
+# Load trained model
 diabetes_model = joblib.load("diabetes_prediction_model.pkl")
 
 
@@ -28,33 +28,89 @@ def predict_diabetes(
     ]])[0]
 
     if prediction == 1:
-        return "⚠️ Positive for Diabetes\n\nPlease consult a healthcare professional."
-    else:
-        return "✅ No Diabetes Detected"
+        return """
+# ⚠️ High Risk of Diabetes
+
+The model predicts that the patient is **likely diabetic**.
+
+Please consult a healthcare professional for proper diagnosis.
+"""
+
+    return """
+# ✅ Low Risk of Diabetes
+
+The model predicts that the patient is **not diabetic**.
+
+Maintain a healthy lifestyle and regular checkups.
+"""
 
 
-interface = gr.Interface(
-    fn=predict_diabetes,
-    inputs=[
-        gr.Number(label="👶 Pregnancies", value=0),
-        gr.Number(label="🩸 Glucose Level", value=120),
-        gr.Number(label="💓 Blood Pressure", value=70),
-        gr.Number(label="📏 Skin Thickness", value=20),
-        gr.Number(label="💉 Insulin", value=79),
-        gr.Number(label="⚖️ BMI", value=25.0),
-        gr.Number(label="🧬 Diabetes Pedigree Function", value=0.5),
-        gr.Number(label="🎂 Age", value=30),
-    ],
-    outputs=gr.Textbox(label="Prediction Result"),
-    title="🩺 Diabetes Prediction System",
-    description="""
-Enter the patient's medical information below.
-The machine learning model will predict whether the patient is likely to have diabetes.
-""",
-)
+with gr.Blocks(theme=gr.themes.Soft(), title="Diabetes Prediction System") as demo:
+
+    gr.Markdown(
+        """
+# 🩺 Diabetes Prediction System
+
+Predict whether a patient is likely to have diabetes using a Machine Learning model.
+
+Fill in the medical details below and click **Predict**.
+"""
+    )
+
+    with gr.Row():
+
+        with gr.Column():
+
+            pregnancies = gr.Number(label="👶 Pregnancies", value=0)
+            glucose = gr.Number(label="🩸 Glucose", value=120)
+            blood_pressure = gr.Number(label="💓 Blood Pressure", value=70)
+            skin_thickness = gr.Number(label="📏 Skin Thickness", value=20)
+
+        with gr.Column():
+
+            insulin = gr.Number(label="💉 Insulin", value=79)
+            bmi = gr.Number(label="⚖️ BMI", value=25.0)
+            diabetes_pedigree = gr.Number(
+                label="🧬 Diabetes Pedigree Function",
+                value=0.5,
+            )
+            age = gr.Number(label="🎂 Age", value=30)
+
+    with gr.Row():
+        predict_btn = gr.Button("🔍 Predict", variant="primary")
+        clear_btn = gr.ClearButton()
+
+    output = gr.Markdown()
+
+    predict_btn.click(
+        predict_diabetes,
+        inputs=[
+            pregnancies,
+            glucose,
+            blood_pressure,
+            skin_thickness,
+            insulin,
+            bmi,
+            diabetes_pedigree,
+            age,
+        ],
+        outputs=output,
+    )
+
+    gr.Markdown(
+        """
+---
+### 📌 Note
+
+- This prediction is generated using a Machine Learning model.
+- It is intended **for educational purposes only**.
+- It should **not** replace professional medical advice.
+"""
+    )
+
 
 if __name__ == "__main__":
-    interface.launch(
+    demo.launch(
         server_name="0.0.0.0",
-        server_port=int(os.environ.get("PORT", 7860))
+        server_port=int(os.environ.get("PORT", 7860)),
     )
